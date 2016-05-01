@@ -45,7 +45,7 @@
   (setf *type-table* (make-array 20))
   (defvar *type-table-index* 0)
   (setf *type-table-index* 0)
-)
+  )
 
 (progn
   (defvar *symbol-table* nil)
@@ -130,7 +130,7 @@
 			    :name (quote ,name)
 			    :doc ,doc
 			    :lambda (lambda ()
-				    ,@body))))
+				      ,@body))))
      (setf (aref *ins-table* *ins-table-index*) new-instruction)
      (incf *ins-table-index*)))
 
@@ -199,7 +199,7 @@
     (incf *PS*)
     (setf (aref *stack* *PS*) (cdr *val*))
     (incf *PS*))
-    
+  
   (defins POP ""
     (decf *PS*)
     (setf (cdr *VAL*) (aref *stack* *PS*))
@@ -232,9 +232,9 @@
       (setf *PSB* *PS*)
       (setf *PS* (+ *PSB* 1 stack-length))
       
-      (let* ((closure-length (get-heap *FUNC* 2))
+      (let* ((closure-length      (get-heap *FUNC* 2))
 	     (closure-space-start 0)
-	     (closure-map-start (+ *FUNC* 3)))
+	     (closure-map-start   (+ *FUNC* 3)))
 	(setf closure-space-start (alloc-heap (+ closure-length 2)))
 
 	;;save real length to structure
@@ -311,9 +311,10 @@
       "FIX-CLOSURE FUNCTION
        copy a `function', and render every closure reference into
        address based accessing."
-    (let* ((func-addr (ins-arg 0))
-	   (func-len (get-heap func-addr 0))
-	   (body-len (get-heap func-addr 4))
+    (let* ((func-addr    (ins-arg 0))
+	   (func-len     (get-heap func-addr 0))
+	   (closure-len  (get-heap func-addr 2))
+	   (body-len     (get-heap func-addr 4))
 	   (closure-addr 0))
       (setf closure-addr (alloc-heap func-len))
       (dotimes (i func-len)
@@ -321,10 +322,10 @@
 	(setf (aref *heap* (+ closure-addr i))
 	      (get-heap func-addr i)))
       (dotimes (i (/ body-len 4))
-	(let* ((index (+ 5 (* i 4)))
-	       (ins (get-heap closure-addr index))
-	       (level (get-heap closure-addr (1+ index)))
-	       (n (get-heap closure-addr (+ 2 index)))
+	(let* ((index    (+ 5 (* i 4)))
+	       (ins      (get-heap closure-addr index))
+	       (level    (get-heap closure-addr (1+ index)))
+	       (n        (get-heap closure-addr (+ 2 index)))
 	       (ins-name (code-to-name ins)))
 	  (if (or (eq 'SET-CLOSURE ins-name)
 		  (eq 'GET-CLOSURE ins-name))
