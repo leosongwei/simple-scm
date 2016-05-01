@@ -317,7 +317,7 @@
 
   (defins GET-STACK
       "GET-STACK SHIFT -. (VAL)
-       STACK[PSB] -> VAL"
+       STACK[PSB+SHIFT*2] -> VAL"
     (let ((shift (+ *PSB* 1 (* 2 (ins-arg 0)))))
       (setf (car *val*) (aref *stack* shift))
       (setf (cdr *val*) (aref *stack* (1+ shift)))))
