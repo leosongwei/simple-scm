@@ -9,7 +9,8 @@
 
   (defvar *stack* nil)
   (setf *stack* (make-array 10000))
-  
+
+  (defvar *run?* 'yep)
   (defvar *PC* 0)
   (defvar *PS* 0)
   (defvar *PSB* 0)
@@ -192,7 +193,7 @@
   (setf *ins-table-index* 0)
 
   (defins HALT "Stop interpreting bytecode."
-    'do-nothing)
+    (setf *run?* 'nop))
   
   (defins PUSH ""
     (setf (aref *stack* *PS*) (car *val*))
@@ -381,12 +382,14 @@
  
 (defun run-vm (start)
   (setf *PC* start)
+  (setf *run?* 'yep)
   (block running
     (loop
 	 (let* ((ins-code (get-heap *PC* 0))
 		(instruction (aref *ins-table* ins-code)))
-	   (if (= ins-code #.(name-to-code 'halt))
+	   (if (eq *run?* 'nop)
 	       (return-from running)
-	       (funcall (instruction-lambda instruction))))))
+	       (funcall (instruction-lambda instruction))))
+       (incf *PC* 4)))
   *VAL*)
 
