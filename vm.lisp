@@ -251,6 +251,8 @@
     (let ((stack-length (get-heap *FUNC* 2)))
       (setf *PSB* *PS*)
       (setf *PS* (+ *PSB* 1 stack-length))
+
+      (setf (aref *stack* *PSB*) *FUNC*) 
       
       (let* ((closure-length      (get-heap *FUNC* 3))
 	     (closure-space-start 0)
@@ -409,14 +411,13 @@
 			 #.(vm-find-symbol 'nil)))))
   
   (defins JMPF
-      "JMPF -. (VAL)
+      "JMPF SHIFT -. (VAL)
        Jump when get a `nil'."
-    (let ((addr (ins-arg 0)))
-      (if (eq 'symbol (code-to-type (car *VAL*)))
-	  (if (= #.(vm-find-symbol 'nil) (cdr *VAL*))
-	      (setf *PC* addr)
-	      nil)
-	  nil))))
+    (let* ((shift          (ins-arg 0))
+	   (closure-base   (aref *stack* *PSB*))
+	   (closure-length (get-heap closure-base 3))
+	   (exact          (+ closure-base 5 closure-length shift)))
+      (setf *PC* exact))))
 
 (defun run-vm (start)
   (setf *PC* start)
