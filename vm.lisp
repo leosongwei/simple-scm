@@ -45,16 +45,7 @@
   (setf *type-table* (make-array 20))
   (defvar *type-table-index* 0)
   (setf *type-table-index* 0)
-
 )
-
-
-(defun vm-get-symbol (code)
-  (let ((s (aref *symbol-table* code)))
-    (if (symbolp s)
-	s
-	(error "Unknown symbol code"))))
-
 
 (progn
   (defvar *symbol-table* nil)
@@ -63,6 +54,12 @@
   (setf *symbol-table* (make-array 1000 :initial-element 0
 				   :adjustable t))
 
+  (defun vm-get-symbol (code)
+    (let ((s (aref *symbol-table* code)))
+      (if (symbolp s)
+	  s
+	  (error "Unknown symbol code"))))
+  
   (defun vm-find-symbol (sym)
     (let ((result nil))
       (dotimes (i 1000)
@@ -239,18 +236,20 @@
 	     (closure-space-start 0)
 	     (closure-map-start (+ *FUNC* 3)))
 	(setf closure-space-start (alloc-heap (+ closure-length 2)))
-	
-	(setf (aref *heap* (+ closure-space-start 0)) (+ closure-length 2))
-	(setf (aref *heap* (+ closure-space-start 1)) *PCL*)
-	
+
+	;;save real length to structure
+	(setf (aref *heap* closure-space-start) (+ closure-length 2))
+	;; save upper closure to structure
+	(setf (aref *heap* (+ closure-space-start 1)) *PCL*) 
+	;; use new closure
 	(setf *PCL* closure-space-start)
 	
 	(dolist (i closure-length)
 	  (setf (aref *heap* (+ closure-space-start 2 i))
 		(aref *stack*
 		      (+ *PSB* 1
-			 (aref *heap* (+ closure-map-start i)))))))
-      (setf *PC* (+ *FUNC* 5))))
+			 (aref *heap* (+ closure-map-start i))))))
+	(setf *PC* (+ *FUNC* 4 closure-length)))))
 
   (defins RETURN
       "Abandon current stack frame, and use after result is in *VAL*."
@@ -282,7 +281,7 @@
     (setf (cdr *val*) (ins-arg 1)))
 
   (defins GET-STACK "GET-STACK SHIFT"
-    (let ((shift (+ 1 (* 2 (ins-arg 0)))))
+    (let ((shift (+ *PSB* 1 (* 2 (ins-arg 0)))))
       (setf (car *val*) (aref *stack* shift))
       (setf (cdr *val*) (aref *stack* (1+ shift)))))
 
@@ -290,6 +289,12 @@
       "GET-CLOSURE
        Fake instruction, filled when running FIX-CLOSURE."
     (error "VM Error, running fake instruction: GET-CLOSURE"))
+
+  (defins GET-CLOSURE-LOCAL
+      "GET-CLOSURE-LOCAL SHIFT
+       get local closure value by PCL[2 + SHIFT]."
+    (setf (car *VAL*) (aref *heap* (+ *PCL* 2 (* 2 (ins-arg 0)))))
+    (setf (cdr *VAL*) (aref *heap* (+ *PCL* 3 (* 2 (ins-arg 0))))))
 
   (defins SET-CLOSURE
       "SET-CLOSURE
