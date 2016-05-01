@@ -228,6 +228,7 @@
     (push-single *PC*)
     (push-single *PCL*)
 
+    ;; currently stack-length is always 6
     (let ((stack-length (get-heap *FUNC* 1)))
       (setf *PSB* *PS*)
       (setf *PS* (+ *PSB* 1 stack-length))
@@ -243,7 +244,8 @@
 	(setf (aref *heap* (+ closure-space-start 1)) *PCL*) 
 	;; use new closure
 	(setf *PCL* closure-space-start)
-	
+
+	;; copy to closure space from stack
 	(dolist (i closure-length)
 	  (setf (aref *heap* (+ closure-space-start 2 i))
 		(aref *stack*
@@ -309,20 +311,21 @@
   
   (defins FIX-CLOSURE
       "FIX-CLOSURE FUNCTION
-       copy a `function', and render every closure reference into
-       address based accessing."
-    (let* ((func-addr    (ins-arg 0))
-	   (func-len     (get-heap func-addr 0))
+     copy a `function', and render every closure reference into
+     address based accessing."
+    (let* ((func-addr    (ins-arg 0)) ;; func struct comes from compile time
+	   (total-len    (get-heap func-addr 0))
 	   (closure-len  (get-heap func-addr 2))
-	   (body-len     (get-heap func-addr 4))
-	   (closure-addr 0))
-      (setf closure-addr (alloc-heap func-len))
-      (dotimes (i func-len)
-	(setf (aref *heap* (+ closure-addr i)) 0) ;; fill with 0
-	(setf (aref *heap* (+ closure-addr i))
-	      (get-heap func-addr i)))
+	   (body-len     (get-heap func-addr (+ 3 closure-len)))
+	   (body-shift   (+ 4 closure-len))
+	   (closure-addr 0)) ;; location of closure struct
+      (setf closure-addr (alloc-heap (1+ total-len)))
+      ;; copy func to closure struct
+      (dotimes (i total-len)
+	(setf (aref *heap* (+ closure-addr i)) 0)
+	(setf (aref *heap* (+ closure-addr i)) (get-heap func-addr i)))
       (dotimes (i (/ body-len 4))
-	(let* ((index    (+ 5 (* i 4)))
+	(let* ((index    (+ body-shift (* i 4))) ;; ins addr shift
 	       (ins      (get-heap closure-addr index))
 	       (level    (get-heap closure-addr (1+ index)))
 	       (n        (get-heap closure-addr (+ 2 index)))
@@ -337,10 +340,12 @@
 					'SET-ADDR
 					'GET-ADDR)))
 		(setf (aref *heap* (+ closure-addr index 1))
-		      (get-closure-ref *PCL* (1- level) n))))))
+		      (get-closure-ref *PCL* (1- level) n)))
+	      nil)))
+      (setf (aref *heap* (+ closure-addr total-len)) *PCL*) ;; link to current
       (setf (car *val*) (type-to-code 'closure))
       (setf (cdr *val*) closure-addr)))
-
+  
   (defins ADD1 "VAL + ARG1 -> VAL"
     (if (and (eq 'integer (code-to-type (car *VAL*)))
 	     (eq 'integer (code-to-type (car *ARG1*))))
