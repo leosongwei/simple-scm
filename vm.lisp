@@ -376,5 +376,17 @@
 	      (setf *PC* addr)
 	      nil)
 	  nil))))
+
+(instruction-lambda (aref *ins-table* 0))
  
+(defun run-vm (start)
+  (setf *PC* start)
+  (block running
+    (loop
+	 (let* ((ins-code (get-heap *PC* 0))
+		(instruction (aref *ins-table* ins-code)))
+	   (if (= ins-code #.(name-to-code 'halt))
+	       (return-from running)
+	       (funcall (instruction-lambda instruction))))))
+  *VAL*)
 
