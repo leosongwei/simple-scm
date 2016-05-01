@@ -16,6 +16,7 @@
   (defvar *PSB* 0)
   (defvar *PCL* 0)
   (defvar *FUNC* 0)
+  (defvar *ARI* 0)
   (defvar *VAL* (cons 0 0))
   (defvar *ARG1* (cons 0 0))
   (defvar *ARG2* (cons 0 0))
@@ -29,6 +30,7 @@
   (setf *PSB* 0)
   (setf *PCL* 0)
   (setf *FUNC* 0)
+  (setf *ARI* 0)
   (setf *VAL* (cons 0 0))
   (setf *ARG1* (cons 0 0))
   (setf *ARG2* (cons 0 0))
@@ -192,25 +194,35 @@
   (setf *ins-table* (make-array 200))
   (setf *ins-table-index* 0)
 
-  (defins HALT "Stop interpreting bytecode."
+  (defins HALT
+      "HALT -
+       Stop interpreting bytecode."
     (setf *run?* 'nop))
   
-  (defins PUSH ""
+  (defins PUSH
+      "PUSH -. (VAL)
+       VAL -> PS[]"
     (setf (aref *stack* *PS*) (car *val*))
     (incf *PS*)
     (setf (aref *stack* *PS*) (cdr *val*))
     (incf *PS*))
   
-  (defins POP ""
+  (defins POP
+      "POP -. (VAL)
+       PS[] -> VAL"
     (decf *PS*)
     (setf (cdr *VAL*) (aref *stack* *PS*))
     (decf *PS*)
     (setf (car *VAL*) (aref *stack* *ps*)))
 
-  (defins SET-FUNC ""
+  (defins SET-FUNC
+      "SET-FUNC -. (VAL FUNC)
+       (val VAL) -> FUNC"
     (setf *func* (cdr *val*)))
 
-  (defins SET-ARGN ""
+  (defins SET-ARGN
+      "SET-ARGN N -. (VAL ARGN)
+       VAL -> ARG(N)"
     (let ((target (ins-arg 0)))
       (cond ((= 1 target)
 	     (set-pair-target *ARG1* *VAL*))
@@ -223,20 +235,26 @@
 	    ((= 5 target)
 	     (set-pair-target *ARG5* *VAL*)))))
 
-  (defins CALL "(FUNC ARG1 ARG2 ARG3 ARG4 ARG5 ARGL)"
+  (defins CALL
+      "FUNC -. (FUNC ARI ARG1 ARG2 ARG3 ARG4 ARG5 ARGL)
+       call a closure."
     (push-single *PS*)
     (push-single *PSB*)
     (push-single *PC*)
     (push-single *PCL*)
 
+    (if (= *ARI* (get-heap *FUNC* 1))
+	t
+	(error "Error arity."))
+
     ;; currently stack-length is always 6
-    (let ((stack-length (get-heap *FUNC* 1)))
+    (let ((stack-length (get-heap *FUNC* 2)))
       (setf *PSB* *PS*)
       (setf *PS* (+ *PSB* 1 stack-length))
       
-      (let* ((closure-length      (get-heap *FUNC* 2))
+      (let* ((closure-length      (get-heap *FUNC* 3))
 	     (closure-space-start 0)
-	     (closure-map-start   (+ *FUNC* 3)))
+	     (closure-map-start   (+ *FUNC* 4)))
 	(setf closure-space-start (alloc-heap (+ closure-length 2)))
 
 	;;save real length to structure
@@ -252,45 +270,60 @@
 		(aref *stack*
 		      (+ *PSB* 1
 			 (aref *heap* (+ closure-map-start i))))))
-	(setf *PC* (+ *FUNC* 4 closure-length)))))
+	(setf *PC* (+ *FUNC* 5 closure-length)))))
 
   (defins RETURN
-      "Abandon current stack frame, and use after result is in *VAL*."
+      "RETURN -.
+       Abandon current stack frame, and use after result is in *VAL*."
     (setf *PS* *PSB*)
     (pop-single *PCL*)
     (pop-single *PC*)
     (pop-single *PSB*)
     (pop-single *PS*))
 
-  (defins SET-ARG "ARG1 is address"
+  (defins SET-ARG
+      "SET-ARG -. (ARG1)
+       Value -> HEAP[ARG1]
+       Set value by arg1. ARG1 is address"
     (let ((addr *ARG1*))
       (setf (aref *heap* addr) (car *val*))
       (setf (aref *heap* (1+ addr)) (cdr *val*))))
-  (defins GET-ARG ""
+  (defins GET-ARG
+      "GET-ARG -. (ARG1)
+       HEAP[ARG1] -> VALUE"
     (let ((addr *ARG1*))
       (setf (car *VAL*) (get-heap addr 0))
       (setf (cdr *VAL*) (get-heap addr 1))))
   
-  (defins SET-ADDR "SET-ADDR ADDR"
+  (defins SET-ADDR
+      "SET-ADDR ADDR -. (VAL)
+       VAL -> HEAP[ADDR]"
     (let ((addr (ins-arg 0)))
       (setf (aref *heap* addr) (car *val*))
       (setf (aref *heap* (1+ addr)) (cdr *val*))))
-  (defins GET-ADDR ""
+  (defins GET-ADDR
+      "GET-ADDR ADDR -. (VAL)
+       HEAP[ADDR] -> VAL"
     (setf (car *val*) (aref *heap* (ins-arg 0)))
     (setf (cdr *val*) (aref *heap* (1+ (ins-arg 0)))))
 
-  (defins CONSTANT "CONSTANT TYPE VALUE"
+  (defins CONSTANT
+      "CONSTANT TYPE VALUE -. (VAL)
+       instant value."
     (setf (car *val*) (ins-arg 0))
     (setf (cdr *val*) (ins-arg 1)))
 
-  (defins GET-STACK "GET-STACK SHIFT"
+  (defins GET-STACK
+      "GET-STACK SHIFT -. (VAL)
+       STACK[PSB] -> VAL"
     (let ((shift (+ *PSB* 1 (* 2 (ins-arg 0)))))
       (setf (car *val*) (aref *stack* shift))
       (setf (cdr *val*) (aref *stack* (1+ shift)))))
 
   (defins GET-CLOSURE
-      "GET-CLOSURE
-       Fake instruction, filled when running FIX-CLOSURE."
+      "GET-CLOSURE LEVEL N -. (VAL)
+       get nth val from closure at level
+       Fake instruction, filled when running FIX-CLOSURE. But will be assembled."
     (error "VM Error, running fake instruction: GET-CLOSURE"))
 
   (defins GET-CLOSURE-LOCAL
@@ -300,8 +333,8 @@
     (setf (cdr *VAL*) (aref *heap* (+ *PCL* 3 (* 2 (ins-arg 0))))))
 
   (defins SET-CLOSURE
-      "SET-CLOSURE
-       Fake instruction, see GET-CLOSURE."
+      "SET-CLOSURE LEVEL N -. (VAL)
+       Fake instruction, but will be assembed, see GET-CLOSURE."
     (error "VM Error, running fake instruction: SET-CLOSURE"))
 
   (defun get-closure-ref (closure-array-addr level n)
@@ -311,14 +344,14 @@
 			 (1- level) n)))
   
   (defins FIX-CLOSURE
-      "FIX-CLOSURE FUNCTION
-     copy a `function', and render every closure reference into
-     address based accessing."
+      "FIX-CLOSURE FUNCTION -. (VAL)
+       copy a `function', and render every closure reference into
+       address based accessing."
     (let* ((func-addr    (ins-arg 0)) ;; func struct comes from compile time
 	   (total-len    (get-heap func-addr 0))
-	   (closure-len  (get-heap func-addr 2))
-	   (body-len     (get-heap func-addr (+ 3 closure-len)))
-	   (body-shift   (+ 4 closure-len))
+	   (closure-len  (get-heap func-addr 3))
+	   (body-len     (get-heap func-addr (+ 4 closure-len)))
+	   (body-shift   (+ 5 closure-len))
 	   (closure-addr 0)) ;; location of closure struct
       (setf closure-addr (alloc-heap (1+ total-len)))
       ;; copy func to closure struct
@@ -347,21 +380,27 @@
       (setf (car *val*) (type-to-code 'closure))
       (setf (cdr *val*) closure-addr)))
   
-  (defins ADD1 "VAL + ARG1 -> VAL"
+  (defins ADD1
+      "ADD1 -. (VAL ARG1)
+       VAL + ARG1 -> VAL"
     (if (and (eq 'integer (code-to-type (car *VAL*)))
 	     (eq 'integer (code-to-type (car *ARG1*))))
 	(setf (cdr *VAL*)
 	      (+ (cdr *VAL*) (cdr *ARG1*)))
 	(error "TYPE-ERROR")))
 
-  (defins SUB1 "VAL - ARG1 -> VAL"
+  (defins SUB1
+      "SUB1 -. (VAL ARG1)
+       VAL - ARG1 -> VAL"
     (if (and (eq 'integer (code-to-type (car *VAL*)))
 	     (eq 'integer (code-to-type (car *ARG1*))))
 	(setf (cdr *VAL*)
 	      (- (cdr *VAL*) (cdr *ARG1*)))
 	(error "TYPE-ERROR")))
 
-  (defins NEQ "if *VAL* == *ARG1*."
+  (defins NEQ
+      "NEQ -. (VAL ARG1)
+       (if VAL == ARG1) -> VAL."
     (if (and (eq 'integer (code-to-type (car *VAL*)))
 	     (eq 'integer (code-to-type (car *ARG1*))))
 	(assign-vreg *VAL* 'symbol
@@ -370,7 +409,8 @@
 			 #.(vm-find-symbol 'nil)))))
   
   (defins JMPF
-      "JMPF: Jump when get a `nil'."
+      "JMPF -. (VAL)
+       Jump when get a `nil'."
     (let ((addr (ins-arg 0)))
       (if (eq 'symbol (code-to-type (car *VAL*)))
 	  (if (= #.(vm-find-symbol 'nil) (cdr *VAL*))
@@ -378,8 +418,6 @@
 	      nil)
 	  nil))))
 
-(instruction-lambda (aref *ins-table* 0))
- 
 (defun run-vm (start)
   (setf *PC* start)
   (setf *run?* 'yep)
