@@ -123,6 +123,14 @@
 	      (r (insa)))
 	  (set-array r 0 (name-to-code 'jmpf))
 	  (set-array r 1 shift)
+	  r)))
+
+  (defass SGOTO
+      (lambda (e tag-table)
+	(let ((shift (gethash (nth 1 e) tag-table))
+	      (r     (insa)))
+	  (set-array r 0 (name-to-code 'jmpf))
+	  (set-array r 1 shift)
 	  r))))
 
 (defun assembly-list (list)
@@ -155,7 +163,7 @@
     (dotimes (i length)
       (dotimes (j 4)
 	(princ (aref array (+ (* 4 i) j)))
-	(princ " "))
+	(format t "~t"))
       (format t "~%"))))
 
 (defun print-byte-code-array (a)

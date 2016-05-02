@@ -417,7 +417,18 @@
 	   (closure-base   (aref *stack* *PSB*))
 	   (closure-length (get-heap closure-base 3))
 	   (exact          (+ closure-base 5 closure-length shift)))
-      (setf *PC* exact))))
+      (if (and (eq 'symbol (code-to-type (car *VAL*)))
+	       (= (car *VAL*) #.(vm-find-symbol 'nil)))
+	  (setf *PC* (- exact 4)))))
+
+  (defins SGOTO
+      "SGOTO SHIFT -. (_)
+       Jump in current function"
+    (let* ((shift          (ins-arg 0))
+	   (closure-base   (aref *stack* *PSB*))
+	   (closure-length (get-heap closure-base 3))
+	   (exact          (+ closure-base 5 closure-length shift)))
+      (setf *PC* (- exact 4)))))
 
 (defun run-vm (start)
   (setf *PC* start)
