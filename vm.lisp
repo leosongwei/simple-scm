@@ -269,7 +269,7 @@
 	(setf *PCL* closure-space-start)
 
 	;; copy to closure space from stack
-	(dolist (i closure-length)
+	(dotimes (i closure-length)
 	  (setf (aref *heap* (+ closure-space-start 2 i))
 		(aref *stack*
 		      (+ *PSB* 1
