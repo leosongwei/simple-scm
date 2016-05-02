@@ -421,6 +421,17 @@
 	       (= (car *VAL*) #.(vm-find-symbol 'nil)))
 	  (setf *PC* (- exact 4)))))
 
+  (defins JMPT
+      "JMPT SHIFT -. (VAL)
+       Jump when get not `nil'."
+    (let* ((shift          (ins-arg 0))
+	   (closure-base   (aref *stack* *PSB*))
+	   (closure-length (get-heap closure-base 3))
+	   (exact          (+ closure-base 5 closure-length shift)))
+      (if (not (and (eq 'symbol (code-to-type (car *VAL*)))
+		    (= (car *VAL*) #.(vm-find-symbol 'nil))))
+	  (setf *PC* (- exact 4)))))
+  
   (defins SGOTO
       "SGOTO SHIFT -. (_)
        Jump in current function"

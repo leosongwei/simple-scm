@@ -124,12 +124,20 @@
 	  (set-array r 0 (name-to-code 'jmpf))
 	  (set-array r 1 shift)
 	  r)))
+  
+  (defass JMPT
+      (lambda (e tag-table)
+	(let ((shift (gethash (nth 1 e) tag-table))
+	      (r (insa)))
+	  (set-array r 0 (name-to-code 'jmpt))
+	  (set-array r 1 shift)
+	  r)))
 
   (defass SGOTO
       (lambda (e tag-table)
 	(let ((shift (gethash (nth 1 e) tag-table))
 	      (r     (insa)))
-	  (set-array r 0 (name-to-code 'jmpf))
+	  (set-array r 0 (name-to-code 'sgoto))
 	  (set-array r 1 shift)
 	  r))))
 
