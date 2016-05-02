@@ -235,7 +235,8 @@
 	    ((= 4 target)
 	     (set-pair-target *ARG4* *VAL*))
 	    ((= 5 target)
-	     (set-pair-target *ARG5* *VAL*)))))
+	     (set-pair-target *ARG5* *VAL*))
+	    (t (error "SET-ARGN")))))
 
   (defins CALL
       "FUNC -. (FUNC ARI ARG1 ARG2 ARG3 ARG4 ARG5 ARGL)
@@ -274,7 +275,7 @@
 		(aref *stack*
 		      (+ *PSB* 1
 			 (aref *heap* (+ closure-map-start i))))))
-	(setf *PC* (+ *FUNC* 5 closure-length)))))
+	(setf *PC* (- (+ *FUNC* 5 closure-length) 4)))))
 
   (defins RETURN
       "RETURN -.
