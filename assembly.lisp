@@ -177,3 +177,10 @@
 (defun print-byte-code-array (a)
   (let* ((length (array-dimension a 0)))
     (print-byte-code-nicely a 0 length)))
+
+(defun hard-code (target addr code)
+  (let ((length (array-dimension code 0)))
+    (dotimes (i length)
+      (setf (aref target (+ addr i))
+	    (aref code i)))
+    'done))
