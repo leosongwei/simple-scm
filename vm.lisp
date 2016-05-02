@@ -218,7 +218,7 @@
   (defins SET-FUNC
       "SET-FUNC -. (VAL FUNC)
        (val VAL) -> FUNC"
-    (if (eq (car *VAL*) #.(type-to-code 'closure))
+    (if (= (car *VAL*) #.(type-to-code 'closure))
 	(setf *func* (cdr *val*))
 	(error "not a function")))
 
@@ -381,7 +381,7 @@
 		      (get-closure-ref *PCL* (1- level) n)))
 	      nil)))
       (setf (aref *heap* (+ closure-addr total-len)) *PCL*) ;; link to current
-      (setf (car *val*) (type-to-code 'closure))
+      (setf (car *val*) #.(type-to-code 'closure))
       (setf (cdr *val*) closure-addr)))
   
   (defins ADD1

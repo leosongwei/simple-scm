@@ -109,7 +109,7 @@
 	tag-table
 	(let ((n (nth 1 e))
 	      (r (insa)))
-	  (set-array r 0 (name-to-code 'get-closure-local))
+	  (set-array r 0 (name-to-code 'fix-closure))
 	  (set-array r 1 n)
 	  r)))
 
