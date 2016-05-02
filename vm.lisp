@@ -387,12 +387,12 @@
   (defins ADD1
       "ADD1 -. (VAL ARG1)
        VAL + ARG1 -> VAL"
-    (if (and (eq 'integer (code-to-type (car *VAL*)))
-	     (eq 'integer (code-to-type (car *ARG1*))))
+    (if (and (= (car *VAL*) #.(type-to-code 'integer))
+	     (= (car *VAL*) #.(type-to-code 'integer)))
 	(setf (cdr *VAL*)
 	      (+ (cdr *VAL*) (cdr *ARG1*)))
 	(error "TYPE-ERROR")))
-
+  
   (defins SUB1
       "SUB1 -. (VAL ARG1)
        VAL - ARG1 -> VAL"
