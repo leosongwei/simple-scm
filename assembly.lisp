@@ -194,11 +194,46 @@
     (setf (aref r 0) total-length)
     (setf (aref r 1) arity)
     (setf (aref r 2) 6) ;; stack-length
+
+    ;; closure
     (setf (aref r 3) closure-length)
     (dotimes (i closure-length)
       (setf (aref r (+ 4 i)) (aref closure-map i)))
-    (setf (aref a (+ 4 closure-length)) body-length)
+
+    ;; body
+    (format t "body-length: ~A~%" body-length)
+    (setf (aref r (+ 4 closure-length)) body-length)
     (dotimes (i body-length)
       (setf (aref r (+ body-shift i))
 	    (aref a i)))
     r))
+
+(defun byte-code-2-function (addr)
+  (let* ((length         (get-heap addr 0))
+	 (arity          (get-heap addr 1))
+	 (stack-length   (get-heap addr 2))
+	 (closure-length (get-heap addr 3))
+	 (closure-map    (let ((a (make-array closure-length)))
+			   (dotimes (i closure-length)
+			     (setf (aref a i)
+				   (get-heap addr (+ 4 i))))
+			   a))
+	 (body-length    (get-heap addr (+ 4 closure-length)))
+	 (body-exact     (+ addr 5 closure-length))
+	 (body           (let ((a (make-array body-length)))
+			   (dotimes (i body-length)
+			     (setf (aref a i)
+				   (get-heap body-exact i)))
+			   a)))
+    (format t "ADDR: ~A~%" addr)
+    (format t "LEN: ~A, ARITY:~A stack-length:~A.~%"
+	    length arity stack-length)
+    (format t "closure, length: ~A, map: ~A.~%"
+	    closure-length closure-map)
+    (format t "body, length: ~A~%" body-length)
+    (dotimes (i (/ body-length 4))
+      (format t "~A. " i)
+      (dotimes (j 4)
+	(format t "~A " (aref body (+ (* 4 i) j))))
+      (format t "~%"))
+    (format t "---")))

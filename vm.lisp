@@ -218,7 +218,9 @@
   (defins SET-FUNC
       "SET-FUNC -. (VAL FUNC)
        (val VAL) -> FUNC"
-    (setf *func* (cdr *val*)))
+    (if (eq (car *VAL*) #.(type-to-code 'closure))
+	(setf *func* (cdr *val*))
+	(error "not a function")))
 
   (defins SET-ARGN
       "SET-ARGN N -. (VAL ARGN)
