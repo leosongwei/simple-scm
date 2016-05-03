@@ -238,6 +238,22 @@
 	     (set-pair-target *ARG5* *VAL*))
 	    (t (error "SET-ARGN")))))
 
+  (defins GET-ARGN
+      "GET-ARGN N -. (VAL ARGN)
+       ARGN -> VAL"
+    (let ((target (ins-arg 0)))
+      (cond ((= 1 target)
+	     (set-pair-target *VAL* *ARG1*))
+	    ((= 2 target)
+	     (set-pair-target *VAL* *ARG2*))
+	    ((= 3 target)
+	     (set-pair-target *VAL* *ARG3*))
+	    ((= 4 target)
+	     (set-pair-target *VAL* *ARG4*))
+	    ((= 5 target)
+	     (set-pair-target *VAL* *ARG5*))
+	    (t (error "GET-ARGN")))))
+  
   (defins CALL
       "FUNC -. (FUNC ARI ARG1 ARG2 ARG3 ARG4 ARG5 ARGL)
        call a closure."
@@ -250,13 +266,23 @@
 	t
 	(error "Error arity."))
 
-    ;; currently stack-length is always 6
-    (let ((stack-length (get-heap *FUNC* 2)))
+    ;; currently stack-length is always 6*2
+    (let (); (stack-length (* 6 2)));((stack-length (get-heap *FUNC* 2)))
       (setf *PSB* *PS*)
-      (setf *PS* (+ *PSB* 1 stack-length))
+      (setf *PS* (+ *PSB* 1 #.(* 2 6))) ;; 2 x stack-length
 
-      (setf (aref *stack* *PSB*) *FUNC*) 
-      
+      (setf (aref *stack* *PSB*) *FUNC*)
+      (setf (aref *stack* (+ *PSB* 1)) (car *ARG1*))
+      (setf (aref *stack* (+ *PSB* 2)) (cdr *ARG1*))
+      (setf (aref *stack* (+ *PSB* 3)) (car *ARG2*))
+      (setf (aref *stack* (+ *PSB* 4)) (cdr *ARG2*))
+      (setf (aref *stack* (+ *PSB* 5)) (car *ARG3*))
+      (setf (aref *stack* (+ *PSB* 6)) (cdr *ARG3*))
+      (setf (aref *stack* (+ *PSB* 7)) (car *ARG4*))
+      (setf (aref *stack* (+ *PSB* 8)) (cdr *ARG4*))
+      (setf (aref *stack* (+ *PSB* 9)) (car *ARG5*))
+      (setf (aref *stack* (+ *PSB* 10)) (cdr *ARG5*))
+
       (let* ((closure-length      (get-heap *FUNC* 3))
 	     (closure-space-start 0)
 	     (closure-map-start   (+ *FUNC* 4)))
@@ -270,11 +296,16 @@
 	(setf *PCL* closure-space-start)
 
 	;; copy to closure space from stack
-	(dotimes (i closure-length)
-	  (setf (aref *heap* (+ closure-space-start 2 i))
-		(aref *stack*
-		      (+ *PSB* 1
-			 (aref *heap* (+ closure-map-start i))))))
+	(let ((cm (make-array closure-length)))
+	  (dotimes (i closure-length)
+	    (setf (aref cm i) (get-heap closure-map-start i)))
+	  (dotimes (i closure-length)
+	    (let ((stack-shift (+ 1 (* 2 (aref cm i)))))
+	      (setf (aref *heap* (+ 2 closure-space-start (* 2 i)))
+		    (aref *stack* (+ *PSB* stack-shift)))
+	      (setf (aref *heap* (+ 2 closure-space-start (* 2 i) 1))
+		    (aref *stack* (+ *PSB* stack-shift 1))))))
+
 	(setf *PC* (- (+ *FUNC* 5 closure-length) 4)))))
 
   (defins RETURN
@@ -335,7 +366,7 @@
       "GET-CLOSURE-LOCAL SHIFT
        get local closure value by PCL[2 + SHIFT]."
     (setf (car *VAL*) (aref *heap* (+ *PCL* 2 (* 2 (ins-arg 0)))))
-    (setf (cdr *VAL*) (aref *heap* (+ *PCL* 3 (* 2 (ins-arg 0))))))
+    (setf (cdr *VAL*) (aref *heap* (+ *PCL* 2 1 (* 2 (ins-arg 0))))))
 
   (defins SET-CLOSURE
       "SET-CLOSURE LEVEL N -. (VAL)
