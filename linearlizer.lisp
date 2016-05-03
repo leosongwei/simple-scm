@@ -1,6 +1,9 @@
 ;;;; body-array
 ;; a: array
 ;; i: index and length
+(defvar *debug-list* nil)
+(setf *debug-list* nil)
+
 (defstruct ba
   a i)
 
@@ -42,14 +45,16 @@
     (setf ass (ba2list ba))
     (push ass *debug-list*)
     (setf ass-len (length ass))
-    (setf total-len (+ 5 (func-closure-length func)
-		       (* 4 ass-len)))
-    (setf addr (alloc-heap total-len))
+    ;; (setf total-len (+ 5 (func-closure-length func)
+    ;; 		       (* 4 ass-len)))
+
     (setf bin
 	  (build-function (func-arity func)
 			  (func-closure-length func)
 			  (func-closure-map func)
 			  ass))
+    (setf total-len (array-dimension bin 0))
+    (setf addr (alloc-heap total-len))    
     (dotimes (i total-len)
       (setf (aref *heap* (+ i addr))
 	    (aref bin i)))
@@ -91,12 +96,15 @@
 		  (add-to-ba
 		   ba (list 'constant 'integer value))))))
 	((if)
-	 (let ((flag (gensym)))
+	 (let ((flag (gensym))
+	       (end-flag (gensym)))
 	   (linearlize ba (cadr e))
 	   (add-to-ba ba (list 'jmpt flag))
 	   (linearlize ba (cadddr e))
+	   (add-to-ba ba (list 'sgoto end-flag))
 	   (add-to-ba ba flag) ;; true flag
-	   (linearlize ba (caddr e))))
+	   (linearlize ba (caddr e))
+	   (add-to-ba ba end-flag)))
 	((call)
 	 (let ((arity (length (nth 2 e)))
 	       (args (nth 2 e))
