@@ -59,6 +59,7 @@
     addr))    
 
 (defun linearlize (ba e)
+  (format t "linearlize: ~A~%" e)
   (if (atom e)
       (cond ((ref-p e)
 	     (let*  ((v (ref-vari e)))
@@ -117,5 +118,6 @@
 	((begin)
 	 (dolist (i (cdr e))
 	   (linearlize ba i))))))
+  
 
 	  

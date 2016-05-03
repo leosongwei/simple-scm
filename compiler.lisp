@@ -70,7 +70,8 @@
 	 (env-stack (extend-c env-stack varnames))
 	 (env-top (car env-stack))
 	 (closure-list nil)
-	 (compiled-body (compile-list body env-stack)))
+	 (compiled-body (cons 'begin
+			      (compile-list body env-stack))))
     (setf (func-arity f) (length varnames))
     (setf (func-closure-length f)
 	  (let ((c 0))
