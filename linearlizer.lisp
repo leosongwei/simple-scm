@@ -2,8 +2,7 @@
 ;; a: array
 ;; i: index and length
 (defstruct ba
-  a
-  i)
+  a i)
 
 (defun gen-ba ()
   (make-ba :a (make-array
@@ -23,7 +22,17 @@
 
 (defun ba2list (ba)
   (let ((r nil))
-    (dotimes (i (ba-i))
+    (dotimes (i (ba-i ba))
       (push (aref (ba-a ba) i) r))
     r))
 
+(defun generate-code (func)
+  (let ((ba (gen-ba))
+	(ass nil)
+	(body (func-body func)))
+    (linearlize ba body)
+    (setf ass (ba2list ba))
+    ass))
+
+(defun linearlize (ba body)
+  ())

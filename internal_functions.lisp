@@ -45,4 +45,13 @@
       (set-argn 1)
       (pop)
       (sub1)
+      (return)))
+
+  (def-internal-func '= 2
+    '((get-argn 1)
+      (push)
+      (get-argn 2)
+      (set-argn 1)
+      (pop)
+      (neq)
       (return))))
