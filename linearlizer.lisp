@@ -12,6 +12,7 @@
 	   :i 0))
 			  
 (defun add-to-ba (ba e)
+  (format t "baadd: ~A~%" e)
   (let ((length (array-dimension (ba-a ba) 0)))
     (if (> (/ (ba-i ba) length) 0.9)
 	(adjust-array (ba-a ba) (floor (* 1.6 length)))
@@ -36,10 +37,14 @@
 	 (total-len nil)
 	 (bin nil)
 	 (addr nil))
+    (format t "gen-code: ~A~%" body)
     (linearlize ba body)
     (add-to-ba ba '(return))
     (setf ass (ba2list ba))
     (setf ass-len (length ass))
+    (format t "BA: ~A~%" ba)
+    (dolist (e ass)
+      (format t "~A~%" e))
     (setf total-len (+ 5 (func-closure-length func)
 		       (* 4 ass-len)))
     (setf addr (alloc-heap total-len))
@@ -108,6 +113,9 @@
 	     (add-to-ba ba (list 'set-argn (- arity i))))
 	   (add-to-ba ba '(pop))
 	   (add-to-ba ba (list 'set-ari arity))
-	   (add-to-ba ba '(call)))))))
+	   (add-to-ba ba '(call))))
+	((begin)
+	 (dolist (i (cdr e))
+	   (linearlize ba i))))))
 
 	  

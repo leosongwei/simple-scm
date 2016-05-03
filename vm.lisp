@@ -416,6 +416,7 @@
 	   (body-shift   (+ 5 closure-len))
 	   (closure-addr 0)) ;; location of closure struct
       (setf closure-addr (alloc-heap (1+ total-len)))
+      (format t "closure-addr: ~A~%" closure-addr)
       ;; copy func to closure struct
       (dotimes (i total-len)
 	(setf (aref *heap* (+ closure-addr i)) 0)
