@@ -93,13 +93,13 @@
 		  (add-to-ba
 		   ba (list 'constant 'integer value))))))
 	((if)
-	 (let ((flag (gensym))
+	 (let ((t-flag (gensym))
 	       (end-flag (gensym)))
 	   (linearlize ba (cadr e))
-	   (add-to-ba ba (list 'jmpt flag))
+	   (add-to-ba ba (list 'jmpt t-flag))
 	   (linearlize ba (cadddr e))
 	   (add-to-ba ba (list 'sgoto end-flag))
-	   (add-to-ba ba flag) ;; true flag
+	   (add-to-ba ba t-flag) ;; true flag
 	   (linearlize ba (caddr e))
 	   (add-to-ba ba end-flag)))
 	((call)
