@@ -21,6 +21,7 @@
   (defass HALT #'noarg)
   (defass PUSH #'noarg)
   (defass POP #'noarg)
+  (defass GET-GLOBAL #'noarg)  
   (defass SET-FUNC #'noarg)
 
   (defass SET-ARGN
@@ -76,9 +77,13 @@
   (defass CONSTANT
       (lambda (e tag-table)
 	tag-table
-	(let ((r          (insa))
-	      (type-code  (type-to-code (nth 1 e)))
-	      (value-code (nth 2 e)))
+	(let* ((r         (insa))
+	       (type-code (type-to-code (nth 1 e)))
+	       (value     (nth 2 e))
+	       (value-code nil))
+	  (if (= type-code #.(type-to-code 'symbol))
+	      (setf value-code (vm-intern-symbol value))
+	      (setf value-code value))
 	  (set-array r 0 (name-to-code 'constant))
 	  (set-array r 1 type-code)
 	  (set-array r 2 value-code)

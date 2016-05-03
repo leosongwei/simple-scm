@@ -76,12 +76,13 @@
       result))
 
   (defun vm-intern-symbol (sym)
-    (if (vm-find-symbol sym)
-	nil
-	(let ((i *symbol-table-index*))
-	  (setf (aref *symbol-table* i) sym)
-	  (incf *symbol-table-index*)
-	  i)))
+    (let ((find (vm-find-symbol sym)))
+      (if find
+	  find
+	  (let ((i *symbol-table-index*))
+	    (setf (aref *symbol-table* i) sym)
+	    (incf *symbol-table-index*)
+	    i))))
 
   (vm-intern-symbol 't)
   (vm-intern-symbol 'nil))
