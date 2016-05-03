@@ -118,15 +118,6 @@
 	((set!) (list 'set!
 		      (lookup (cadr e) env-stack)
 		      (compiler (caddr e) env-stack)))
-	((-) (list '-
-		   (compiler (cadr e) env-stack)
-		   (compiler (caddr e) env-stack)))
-	((+) (list '+
-		   (compiler (cadr e) env-stack)
-		   (compiler (caddr e) env-stack)))
-	((=) (list '= ;; todo: arity
-		   (compiler (cadr e) env-stack)
-		   (compiler (caddr e) env-stack)))
 	((lambda) (compile-lambda e env-stack))
 	(t (list 'call
 		 (compiler (car e) env-stack)
