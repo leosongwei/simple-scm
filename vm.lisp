@@ -488,7 +488,7 @@
 	   (closure-length (get-heap closure-base 3))
 	   (exact          (+ closure-base 5 closure-length shift)))
       (if (not (and (eq 'symbol (code-to-type (car *VAL*)))
-		    (= (car *VAL*) #.(vm-find-symbol 'nil))))
+		    (= (car *VAL*) #.(vm-find-symbol 't))))
 	  (setf *PC* (- exact 4)))))
   
   (defins SGOTO
