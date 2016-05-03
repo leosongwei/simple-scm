@@ -224,7 +224,8 @@
        get var from global a list
        VAL.SYMBOL -> global alist reference -> VAL.value"
     (if (= (car *VAL*) #.(type-to-code 'symbol))
-	(let ((scode (vm-find-symbol 't)))
+	(let ((scode  (cdr *VAL*)))
+	  (format t "scode:~A~%" scode)
 	  (if (not scode)
 	      (error "VM: GET-GLOBAL, symbol not interned.")
 	      (let ((addr (gethash scode *global-alist*)))

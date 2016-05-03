@@ -12,20 +12,22 @@
     (let ((start (alloc-heap length)))
       (dotimes (i length)
 	(setf (aref *heap* (+ start i))
-	      (aref closure-binary i))))
-    'done))
+	      (aref closure-binary i)))
+      start)))
 
-(defmacro def-internal-func (name arity &body list)
-  `(let ((scode (vm-intern-symbol (quote ,name))))
-     (setf (gethash scode *global-alist*)
-	   (make-simple-closure ,arity ,@list))
-     (setf (gethash (quote ,name) *global-env*)
-	   (make-vari :name (quote ,name)
-		      :type 'global
-		      :n nil))))
+(defun def-internal-func (name arity list)
+  (let* ((v-addr (alloc-heap 2))
+	 (start (make-simple-closure arity list)))
+    (setf (gethash (vm-intern-symbol name) *global-alist*) v-addr)
+    (setf (aref *heap* v-addr) #.(type-to-code 'closure))
+    (setf (aref *heap* (1+ v-addr)) start)
+    (setf (gethash name *global-env*)
+	  (make-vari :name name
+		     :type 'global
+		     :n nil))))
 
 (progn
-  (def-internal-func + 2
+  (def-internal-func '+ 2
     '((get-argn 1)
       (push)
       (get-argn 2)
@@ -34,4 +36,13 @@
       (set-argn 1)
       (pop)
       (add1)
+      (return)))
+
+  (def-internal-func '- 2
+    '((get-argn 1)
+      (push)
+      (get-argn 2)
+      (set-argn 1)
+      (pop)
+      (sub1)
       (return))))
