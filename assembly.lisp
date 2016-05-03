@@ -219,7 +219,6 @@
       (setf (aref r (+ 4 i)) (aref closure-map i)))
 
     ;; body
-    (format t "body-length: ~A~%" body-length)
     (setf (aref r (+ 4 closure-length)) body-length)
     (dotimes (i body-length)
       (setf (aref r (+ body-shift i))

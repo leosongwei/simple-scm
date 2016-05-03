@@ -1,14 +1,17 @@
 ;;;; ================== RUNTIME ======================
 
 (progn
+  (defvar *global-alist* nil)
+  (setf *global-alist* (make-hash-table))
+  
   (defvar *heap* nil)
-  (setf *heap* (make-array 10000))
+  (setf *heap* (make-array 40000))
   
   (defvar *pointer-heap* 1)
-  (setf *pointer-heap* 1)
+  (setf *pointer-heap* 5000) ;; preserve addr under 5*4 K to do nasty things
 
   (defvar *stack* nil)
-  (setf *stack* (make-array 10000))
+  (setf *stack* (make-array 40000))
 
   (defvar *run?* 'yep)
   (defvar *PC* 0)
@@ -214,6 +217,22 @@
     (setf (cdr *VAL*) (aref *stack* *PS*))
     (decf *PS*)
     (setf (car *VAL*) (aref *stack* *ps*)))
+
+  (defins GET-GLOBAL
+      "GET-GLOBAL -. (VAL)
+       get var from global a list
+       VAL.SYMBOL -> global alist reference -> VAL.value"
+    (if (= (car *VAL*) #.(type-to-code 'symbol))
+	(let ((scode (vm-find-symbol 't)))
+	  (if (not scode)
+	      (error "VM: GET-GLOBAL, symbol not interned.")
+	      (let ((addr (gethash scode *global-alist*)))
+		(if addr
+		    (progn
+		      (setf (car *VAL*) (get-heap addr 0))
+		      (setf (cdr *VAL*) (get-heap addr 1)))
+		    (error "VM: GET-GLOBAL, alias not found.")))))
+	(error "VM: GET-GLOBAL, not a symbol.")))
 
   (defins SET-FUNC
       "SET-FUNC -. (VAL FUNC)
