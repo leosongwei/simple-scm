@@ -467,7 +467,7 @@
     (if (and (eq 'integer (code-to-type (car *VAL*)))
 	     (eq 'integer (code-to-type (car *ARG1*))))
 	(assign-vreg *VAL* 'symbol
-		     (if (= (car *VAL*) (cdr *ARG1*))
+		     (if (= (cdr *VAL*) (cdr *ARG1*))
 			 #.(vm-find-symbol 't)
 			 #.(vm-find-symbol 'nil)))))
   
@@ -489,6 +489,7 @@
 	   (closure-base   (aref *stack* *PSB*))
 	   (closure-length (get-heap closure-base 3))
 	   (exact          (+ closure-base 5 closure-length (* 4 shift))))
+      (format t "VM: running JMPT~%")
       (if (not (and (eq 'symbol (code-to-type (car *VAL*)))
 		    (= (car *VAL*) #.(vm-find-symbol 't))))
 	  (setf *PC* (- exact 4)))))

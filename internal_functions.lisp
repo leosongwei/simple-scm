@@ -51,6 +51,8 @@
     '((get-argn 1)
       (push)
       (get-argn 2)
+      (push)
+      (pop)
       (set-argn 1)
       (pop)
       (neq)

@@ -43,11 +43,7 @@
     (linearlize ba body)
     (add-to-ba ba '(return))
     (setf ass (ba2list ba))
-    (push ass *debug-list*)
     (setf ass-len (length ass))
-    ;; (setf total-len (+ 5 (func-closure-length func)
-    ;; 		       (* 4 ass-len)))
-
     (setf bin
 	  (build-function (func-arity func)
 			  (func-closure-length func)
@@ -58,6 +54,7 @@
     (dotimes (i total-len)
       (setf (aref *heap* (+ i addr))
 	    (aref bin i)))
+    (push (cons addr ass) *debug-list*)    
     addr))    
 
 (defun linearlize (ba e)
