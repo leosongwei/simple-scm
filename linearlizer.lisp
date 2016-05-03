@@ -24,15 +24,73 @@
   (let ((r nil))
     (dotimes (i (ba-i ba))
       (push (aref (ba-a ba) i) r))
-    r))
+    (reverse r)))
 
-(defun generate-code (func)
+(defun gen-code (func)
+  "GENERATE-CODE
+   return start of function addr on *HEAP*"
   (let ((ba (gen-ba))
 	(ass nil)
 	(body (func-body func)))
     (linearlize ba body)
     (setf ass (ba2list ba))
-    ass))
+    ba))
 
-(defun linearlize (ba body)
-  ())
+(defun linearlize (ba e)
+  (if (atom e)
+      (cond ((ref-p e)
+	     (let*  ((v (ref-vari e)))
+	       (case (vari-type v)
+		 ((stack)
+		  (add-to-ba ba (list 'get-argn (1+ (vari-n v)))))
+		 ((closure)
+		  (add-to-ba ba
+			     (if (= 0 (ref-level e))
+				 (list 'get-closure-local
+				       (vari-n v))
+				 (list 'get-closure
+				       (ref-level e)
+				       (vari-n v)))))
+		 ((global)
+		  (progn
+		    (add-to-ba ba (list 'constant 'symbol
+					(vari-name v)))
+		    (add-to-ba ba (list 'get-global)))))))
+	    ((func-p e)
+	     (let ((start (gen-code e)))
+	       (add-to-ba
+		ba
+		(list 'fix-closure start)))))
+      (case (car e)
+	((constant)
+	 (let ((value (cadr e)))
+	   (cond ((symbolp value)
+		  (add-to-ba
+		   ba (list 'constant 'symbol value)))
+		 ((numberp value)
+		  (add-to-ba
+		   ba (list 'constant 'integer value))))))
+	((if)
+	 (let ((flag (gensym)))
+	   (linearlize ba (cadr e))
+	   (add-to-ba ba (list 'jmpt flag))
+	   (linearlize ba (cadddr e))
+	   (add-to-ba ba flag) ;; true flag
+	   (linearlize ba (caddr e))))
+	((call)
+	 (let ((arity (length (nth 2 e)))
+	       (args (nth 2 e))
+	       (f (nth 1 e)))
+	   (linearlize ba f)
+	   (add-to-ba ba '(push))
+	   (dolist (i args)
+	     (linearlize i)
+	     (add-to-ba ba '(push)))
+	   (dotimes (i arity)
+	     (add-to-ba ba '(pop))
+	     (add-to-ba ba (list 'set-argn (- arity i))))
+	   (add-to-ba ba '(pop))
+	   (add-to-ba ba (list 'set-ari arity))
+	   (add-to-ba ba '(call)))))))
+
+	  
