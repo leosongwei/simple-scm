@@ -66,7 +66,7 @@
 (defun compile-lambda (e env-stack)
   (let* ((f (make-func))
 	 (varnames (cadr e))
-	 (body (cons (list 'begin) (cddr e)))
+	 (body (cddr e))
 	 (env-stack (extend-c env-stack varnames))
 	 (env-top (car env-stack))
 	 (closure-list nil)
@@ -119,8 +119,7 @@
 			(compiler (cadr e) env-stack)
 			(compiler (caddr e) env-stack)
 			(compiler (cadddr e) env-stack))))
-	((begin) (list 'begin
-		       (compile-list (cdr e) env-stack)))
+	((begin) (cons 'begin (compile-list (cdr e) env-stack)))
 	((set!) (list 'set!
 		      (lookup (cadr e) env-stack)
 		      (compiler (caddr e) env-stack)))
