@@ -261,19 +261,12 @@
   
   (defins GET-ARGN
       "GET-ARGN N -. (VAL ARGN)
-       ARGN -> VAL"
-    (let ((target (ins-arg 0)))
-      (cond ((= 1 target)
-	     (set-pair-target *VAL* *ARG1*))
-	    ((= 2 target)
-	     (set-pair-target *VAL* *ARG2*))
-	    ((= 3 target)
-	     (set-pair-target *VAL* *ARG3*))
-	    ((= 4 target)
-	     (set-pair-target *VAL* *ARG4*))
-	    ((= 5 target)
-	     (set-pair-target *VAL* *ARG5*))
-	    (t (error "GET-ARGN")))))
+       stack(ARGN) -> VAL
+       Registers ARGX can be covered, so we can only get these value
+       from stack."
+    (let ((target (1- (ins-arg 0))))
+      (setf (car *VAL*) (aref *stack* (+ *PSB* 1 (* 2 target))))
+      (setf (cdr *VAL*) (aref *stack* (+ *PSB* 2 (* 2 target))))))
 
   (defins SET-ARI
       "SET-ARI N -. (ARI)
