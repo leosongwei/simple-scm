@@ -32,6 +32,24 @@
 	  (set-array r 1 n)
 	  r)))
 
+  (defass GET-ARGN
+      (lambda (e tag-table)
+	tag-table
+	(let ((n (nth 1 e))
+	      (r (insa)))
+	  (set-array r 0 (name-to-code 'get-argn))
+	  (set-array r 1 n)
+	  r)))
+
+  (defass SET-ARI
+      (lambda (e tag-table)
+	tag-table
+	(let ((n (nth 1 e))
+	      (r (insa)))
+	  (set-array r 0 (name-to-code 'set-ari))
+	  (set-array r 1 n)
+	  r)))
+
   (defass CALL #'noarg)
   (defass RETURN #'noarg)
   (defass SET-ARG #'noarg)

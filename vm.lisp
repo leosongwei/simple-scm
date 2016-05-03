@@ -237,7 +237,7 @@
 	    ((= 5 target)
 	     (set-pair-target *ARG5* *VAL*))
 	    (t (error "SET-ARGN")))))
-
+  
   (defins GET-ARGN
       "GET-ARGN N -. (VAL ARGN)
        ARGN -> VAL"
@@ -253,6 +253,11 @@
 	    ((= 5 target)
 	     (set-pair-target *VAL* *ARG5*))
 	    (t (error "GET-ARGN")))))
+
+  (defins SET-ARI
+      "SET-ARI N -. (ARI)
+       N -> ARI"
+    (setf *ARI* (ins-arg 0)))
   
   (defins CALL
       "FUNC -. (FUNC ARI ARG1 ARG2 ARG3 ARG4 ARG5 ARGL)
