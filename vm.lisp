@@ -390,7 +390,7 @@
 
   (defins GET-CLOSURE-LOCAL
       "GET-CLOSURE-LOCAL SHIFT
-       get local closure value by PCL[2 + SHIFT]."
+       get local closure value by PCL[2 + 2*SHIFT]."
     (setf (car *VAL*) (aref *heap* (+ *PCL* 2 (* 2 (ins-arg 0)))))
     (setf (cdr *VAL*) (aref *heap* (+ *PCL* 2 1 (* 2 (ins-arg 0))))))
 
