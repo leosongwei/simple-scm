@@ -5,13 +5,13 @@
   (setf *global-alist* (make-hash-table))
   
   (defvar *heap* nil)
-  (setf *heap* (make-array 40000))
+  (setf *heap* (make-array 100000))
   
   (defvar *pointer-heap* 1)
   (setf *pointer-heap* 5000) ;; preserve addr under 5*4 K to do nasty things
 
   (defvar *stack* nil)
-  (setf *stack* (make-array 40000))
+  (setf *stack* (make-array 100000))
 
   (defvar *run?* 'yep)
   (defvar *PC* 0)
