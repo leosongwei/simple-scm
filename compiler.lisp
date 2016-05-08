@@ -63,6 +63,12 @@
 (defun self-quote? (e)
   (or (numberp e) (boolp e)))
 
+
+;; supress big warning
+(defun compiler (e env-stack) e env-stack)
+(defun compile-list (e env-stack) e env-stack)
+;; -------------
+
 (defun compile-lambda (e env-stack)
   (let* ((f (make-func))
 	 (varnames (cadr e))

@@ -1,5 +1,6 @@
 (defun reloading ()
   (progn
+    (load "vm-def.lisp")
     (load "vm.lisp")
     (load "assembly.lisp")
     (load "compiler.lisp")
@@ -7,3 +8,4 @@
     (load "linearlizer.lisp")
     ))
 
+(reloading)

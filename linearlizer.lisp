@@ -30,6 +30,11 @@
       (push (aref (ba-a ba) i) r))
     (reverse r)))
 
+;; supress big warning
+(defun gen-code (func) func)
+(defun linearlize (ba e) ba e)
+;; -------------
+
 (defun gen-code (func)
   "GENERATE-CODE
    return start of function addr on *HEAP*"
