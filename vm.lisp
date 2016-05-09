@@ -11,7 +11,7 @@
   (setf *pointer-heap* 5000) ;; preserve addr under 5*4 K to do nasty things
 
   (defvar *stack* nil)
-  (setf *stack* (make-array 100000))
+  (setf *stack* (make-array 1000000))
 
   (defvar *run?* 'yep)
   (defvar *PC* 0)
@@ -225,7 +225,6 @@
        VAL.SYMBOL -> global alist reference -> VAL.value"
     (if (= (car *VAL*) #.(type-to-code 'symbol))
 	(let ((scode  (cdr *VAL*)))
-	  (format t "scode:~A~%" scode)
 	  (if (not scode)
 	      (error "VM: GET-GLOBAL, symbol not interned.")
 	      (let ((addr (gethash scode *global-alist*)))
@@ -409,7 +408,6 @@
 	   (body-shift   (+ 5 closure-len))
 	   (closure-addr 0)) ;; location of closure struct
       (setf closure-addr (alloc-heap (1+ total-len)))
-      (format t "closure-addr: ~A~%" closure-addr)
       ;; copy func to closure struct
       (dotimes (i total-len)
 	(setf (aref *heap* (+ closure-addr i)) 0)
@@ -482,7 +480,6 @@
 	   (closure-base   (aref *stack* *PSB*))
 	   (closure-length (get-heap closure-base 3))
 	   (exact          (+ closure-base 5 closure-length (* 4 shift))))
-      (format t "VM: running JMPT, VAL~A~%" *VAL*)
       (if (and (eq 'symbol (code-to-type (car *VAL*)))
 	       (= (cdr *VAL*) #.(vm-find-symbol 't)))
 	  (setf *PC* (- exact 4)))))
@@ -494,7 +491,6 @@
 	   (closure-base   (aref *stack* *PSB*))
 	   (closure-length (get-heap closure-base 3))
 	   (exact          (+ closure-base 5 closure-length (* 4 shift))))
-      (format t "shift:~A, closure-base:~A" shift closure-base)
       (setf *PC* (- exact 4)))))
 
 (defun run-vm (start)

@@ -15,7 +15,6 @@
 	   :i 0))
 			  
 (defun add-to-ba (ba e)
-  (format t "baadd: ~A~%" e)
   (let ((length (array-dimension (ba-a ba) 0)))
     (if (> (/ (ba-i ba) length) 0.9)
 	(adjust-array (ba-a ba) (floor (* 1.6 length)))
@@ -63,7 +62,6 @@
     addr))    
 
 (defun linearlize (ba e)
-  (format t "linearlize: ~A~%" e)
   (if (atom e)
       (cond ((ref-p e)
 	     (let*  ((v (ref-vari e)))
