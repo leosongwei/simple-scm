@@ -20,6 +20,8 @@
   (aref array (+ func-addr 3)))
 (defun func-closure-map (array func-addr index)
   (aref array (+ func-addr 4 index)))
+(defun func-closure-map-addr (func-addr)
+  (+ func-addr 4))
 (defun func-body-len (array func-addr)
   (aref array (+ func-addr 4 (func-closure-len array
 					       func-addr))))

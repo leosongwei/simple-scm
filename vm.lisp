@@ -5,13 +5,17 @@
   (setf *global-alist* (make-hash-table))
   
   (defvar *heap* nil)
-  (setf *heap* (make-array 100000))
+  (setf *heap* (make-array 100000
+			   :initial-element 0
+			   :element-type '(signed-byte 32)))
   
   (defvar *pointer-heap* 1)
   (setf *pointer-heap* 5000) ;; preserve addr under 5*4 K to do nasty things
 
   (defvar *stack* nil)
-  (setf *stack* (make-array 1000000))
+  (setf *stack* (make-array 1000000
+			    :initial-element 0
+			    :element-type '(signed-byte 32)))
 
   (defvar *run?* 'yep)
   (defvar *PC* 0)
@@ -285,10 +289,10 @@
 	(error "Error arity."))
 
     ;; currently stack-length is always 6*2
-    (let (); (stack-length (* 6 2)));((stack-length (get-heap *FUNC* 2)))
+    (let ((stack-length (func-stack-len *heap* *FUNC*)))
       (setf *PSB* *PS*)
-      (setf *PS* (+ *PSB* 1 #.(* 2 6))) ;; 2 x stack-length
-
+      (setf *PS* (+ *PSB* 1 (* 2 stack-length)))
+      
       (setf (aref *stack* *PSB*) *FUNC*)
       (setf (aref *stack* (+ *PSB* 1)) (car *ARG1*))
       (setf (aref *stack* (+ *PSB* 2)) (cdr *ARG1*))
@@ -301,9 +305,9 @@
       (setf (aref *stack* (+ *PSB* 9)) (car *ARG5*))
       (setf (aref *stack* (+ *PSB* 10)) (cdr *ARG5*))
 
-      (let* ((closure-length      (get-heap *FUNC* 3))
+      (let* ((closure-length      (func-closure-len *heap* *FUNC*))
 	     (closure-space-start 0)
-	     (closure-map-start   (+ *FUNC* 4)))
+	     (closure-map-start   (func-closure-map-addr *FUNC*)))
 	(setf closure-space-start (alloc-heap (+ closure-length 2)))
 
 	;;save real length to structure
@@ -393,7 +397,7 @@
 
   (defun get-closure-ref (closure-array-addr level n)
     (if (= level 0)
-	(+ closure-array-addr 2 n)
+	(+ closure-array-addr 2 (* 2 n))
 	(get-closure-ref (get-heap closure-array-addr 1)
 			 (1- level) n)))
   
@@ -402,9 +406,9 @@
        copy a `function', and render every closure reference into
        address based accessing."
     (let* ((func-addr    (ins-arg 0)) ;; func struct comes from compile time
-	   (total-len    (get-heap func-addr 0))
-	   (closure-len  (get-heap func-addr 3))
-	   (body-len     (get-heap func-addr (+ 4 closure-len)))
+	   (total-len    (func-total-len *heap* func-addr))
+	   (closure-len  (func-closure-len *heap* func-addr))
+	   (body-len     (func-body-len *heap* func-addr))
 	   (body-shift   (+ 5 closure-len))
 	   (closure-addr 0)) ;; location of closure struct
       (setf closure-addr (alloc-heap (1+ total-len)))
