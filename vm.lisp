@@ -437,34 +437,35 @@
       (setf (aref *heap* (+ closure-addr total-len)) *PCL*) ;; link to current
       (setf (car *val*) #.(type-to-code 'closure))
       (setf (cdr *val*) closure-addr)))
-  
+
   (defins ADD1
-      "ADD1 -. (VAL ARG1)
-       VAL + ARG1 -> VAL"
-    (if (and (= (car *VAL*) #.(type-to-code 'integer))
-	     (= (car *VAL*) #.(type-to-code 'integer)))
-	(setf (cdr *VAL*)
-	      (+ (cdr *VAL*) (cdr *ARG1*)))
-	(error "TYPE-ERROR")))
-  
+      "ADD1 -. (ARG1 ARG2)
+       ARG1 + ARG2 -> VAL"
+    (if (and (eq 'integer (code-to-type (car *ARG1*)))
+	     (eq 'integer (code-to-type (car *ARG2*))))
+	(assign-vreg *VAL* 'integer (+ (cdr *ARG1*)
+				       (cdr *ARG2*)))
+	(error "ADD1: TYPE-ERROR")))
+
   (defins SUB1
-      "SUB1 -. (VAL ARG1)
-       VAL - ARG1 -> VAL"
-    (if (and (eq 'integer (code-to-type (car *VAL*)))
-	     (eq 'integer (code-to-type (car *ARG1*))))
-	(setf (cdr *VAL*)
-	      (- (cdr *VAL*) (cdr *ARG1*)))
-	(error "TYPE-ERROR")))
+      "SUB1 -. (ARG1 ARG2)
+       ARG1 - ARG2 -> VAL"
+    (if (and (eq 'integer (code-to-type (car *ARG1*)))
+	     (eq 'integer (code-to-type (car *ARG2*))))
+	(assign-vreg *VAL* 'integer (- (cdr *ARG1*)
+				       (cdr *ARG2*)))
+	(error "SUB1: TYPE-ERROR")))
 
   (defins NEQ
-      "NEQ -. (VAL ARG1)
-       (if VAL == ARG1) -> VAL."
-    (if (and (eq 'integer (code-to-type (car *VAL*)))
-	     (eq 'integer (code-to-type (car *ARG1*))))
+      "NEQ -. (ARG1 ARG2)
+       (if ARG1 == ARG2) -> VAL."
+    (if (and (eq 'integer (code-to-type (car *ARG1*)))
+	     (eq 'integer (code-to-type (car *ARG2*))))
 	(assign-vreg *VAL* 'symbol
-		     (if (= (cdr *VAL*) (cdr *ARG1*))
+		     (if (= (cdr *ARG1*) (cdr *ARG2*))
 			 #.(vm-find-symbol 't)
-			 #.(vm-find-symbol 'nil)))))
+			 #.(vm-find-symbol 'nil)))
+	(error "NEQ: TYPE-ERROR")))
   
   (defins JMPF
       "JMPF SHIFT -. (VAL)
