@@ -95,6 +95,19 @@
 		 ((numberp value)
 		  (add-to-ba
 		   ba (list 'constant 'integer value))))))
+	((set!)
+	 (let* ((v (ref-vari (cadr e))))
+	   (case (vari-type v)
+	     ((stack)
+	      nil)
+	     ((closure)
+	      nil)
+	     (global
+	      (let* ((name (vari-name v))
+		     (scode (vm-intern-symbol name)))
+		(linearlize ba (caddr e))
+		(add-to-ba ba
+			   (list 'SET-GLOBAL scode)))))))
 	((if)
 	 (let ((t-flag (gensym))
 	       (end-flag (gensym)))

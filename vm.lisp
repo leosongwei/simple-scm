@@ -165,6 +165,9 @@
 (defun get-heap (object shift)
   (aref *heap* (+ object shift)))
 
+(defun set-heap (object shift value)
+  (setf (aref *heap* (+ object shift)) value))
+
 (defun alloc-heap (size)
   (let ((start *pointer-heap*))
     (incf *pointer-heap* size)
@@ -238,6 +241,19 @@
 		      (setf (cdr *VAL*) (get-heap addr 1)))
 		    (error "VM: GET-GLOBAL, alias not found.")))))
 	(error "VM: GET-GLOBAL, not a symbol.")))
+
+  (defins SET-GLOBAL
+      "SET-GLOBAL SYM-CODE. (VAL)
+      set *VAL* to global alist"
+    (let* ((scode (ins-arg 0))
+	   (addr (gethash scode *global-alist*)))
+      (if addr
+	  nil
+	  (progn (setf addr (alloc-heap 2))
+		 (setf (gethash scode *global-alist*) addr)))
+      (progn
+	(set-heap addr 0 (car *VAL*))
+	(set-heap addr 1 (cdr *VAL*)))))
 
   (defins SET-FUNC
       "SET-FUNC -. (VAL FUNC)

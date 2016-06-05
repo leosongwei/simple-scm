@@ -21,7 +21,17 @@
   (defass HALT #'noarg)
   (defass PUSH #'noarg)
   (defass POP #'noarg)
-  (defass GET-GLOBAL #'noarg)  
+  (defass GET-GLOBAL #'noarg)
+
+  (defass SET-GLOBAL
+      (lambda (e tag-table)
+	tag-table
+	(let ((scode (nth 1 e))
+	      (r (insa)))
+	  (set-array r 0 (name-to-code 'set-global))
+	  (set-array r 1 scode)
+	  r)))
+  
   (defass SET-FUNC #'noarg)
 
   (defass SET-ARGN

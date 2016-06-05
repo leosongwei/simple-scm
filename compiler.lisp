@@ -47,8 +47,15 @@
 	(let ((global (gethash id *global-env*)))
 	  (if global
 	      (make-ref :vari global :level 0)
-	      (error (format t "Compiler: id `~A' not found"
-			     id)))))))
+	      (let ((vari (make-vari :name id
+				     :type 'global
+				     :n nil))
+		    (addr (alloc-heap 2))
+		    (scode (vm-intern-symbol id)))
+		(setf (gethash id *global-env*) vari)
+		(setf (gethash scode *global-alist*) addr)
+		(make-ref :vari vari :level 0)))))))
+
 (defstruct func
   arity
   closure-length
