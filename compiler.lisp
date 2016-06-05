@@ -121,7 +121,7 @@
       (push (compiler i env-stack) r))
     (reverse r)))
 
-(defun compiler (e env-stack)
+(defun compiler (e &optional (env-stack nil))
   (if (atom e)
       (cond ((self-quote? e) (list 'constant e))
 	    ((symbolp e) (lookup e env-stack)))

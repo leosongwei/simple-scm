@@ -34,6 +34,15 @@
   
   (defass SET-FUNC #'noarg)
 
+  (defass SET-STACK
+      (lambda (e tag-table)
+	tag-table
+	(let ((n (nth 1 e))
+	      (r (insa)))
+	  (set-array r 0 (name-to-code 'SET-STACK))
+	  (set-array r 1 n)
+	  r)))
+
   (defass SET-ARGN
       (lambda (e tag-table)
 	tag-table
@@ -117,7 +126,8 @@
 	      (n (nth 2 e)))
 	  (set-array r 0 (name-to-code 'get-closure))
 	  (set-array r 1 level)
-	  (set-array r 2 n))))
+	  (set-array r 2 n)
+	  r)))
 
   (defass SET-CLOSURE
       (lambda (e tag-table)

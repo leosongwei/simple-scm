@@ -6,6 +6,6 @@
     (load "compiler.lisp")
     (load "internal_functions.lisp")
     (load "linearlizer.lisp")
-    ))
+    (load "interface.lisp")))
 
 (reloading)

@@ -99,10 +99,13 @@
 	 (let* ((v (ref-vari (cadr e))))
 	   (case (vari-type v)
 	     ((stack)
-	      nil)
+	      (let* ((n (1+ (vari-n v))))
+		(linearlize ba (caddr e))
+		(add-to-ba ba
+			   (list 'SET-STACK n))))
 	     ((closure)
 	      nil)
-	     (global
+	     ((global)
 	      (let* ((name (vari-name v))
 		     (scode (vm-intern-symbol name)))
 		(linearlize ba (caddr e))

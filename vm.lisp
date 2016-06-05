@@ -262,6 +262,15 @@
 	(setf *func* (cdr *val*))
 	(error "not a function")))
 
+  (defins SET-STACK
+      "SET-STACK N, VAR
+       VAL-> STACK-ARGS(N)"
+    (let ((target (1- (ins-arg 0))))
+      (format t "SET-STACK: VAL:~A~%" *VAL*)
+      
+      (setf (aref *stack* (+ *PSB* 1 (* 2 target))) (car *VAL*))
+      (setf (aref *stack* (+ *PSB* 2 (* 2 target))) (cdr *VAL*))))
+
   (defins SET-ARGN
       "SET-ARGN N -. (VAL ARGN)
        VAL -> ARG(N)"
